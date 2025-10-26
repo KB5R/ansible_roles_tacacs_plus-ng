@@ -739,7 +739,7 @@ ansible tacacs_servers -m fetch -a "src=/root/tacacs_backup_*.tar.gz dest=./back
 
 ## Лицензия
 
-Укажите вашу лицензию (например, MIT, GPL, Apache 2.0)
+GPL
 
 ## Поддержка
 
@@ -755,3 +755,4 @@ ansible tacacs_servers -m fetch -a "src=/root/tacacs_backup_*.tar.gz dest=./back
 - [Официальная документация tac_plus-ng](http://www.pro-bono-publico.de/projects/)
 - [RFC 8907: TACACS+ Protocol](https://tools.ietf.org/html/rfc8907)
 - [Ansible Documentation](https://docs.ansible.com/)
+
