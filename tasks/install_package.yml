@@ -1,0 +1,10 @@
+---
+- name: Установить tac_plus-ng из репозитория
+  ansible.builtin.package:
+    name: "{{ tacacs_package_name }}"
+    state: "{{ tacacs_package_state }}"
+
+- name: Установить rsync
+  ansible.builtin.package:
+    name: "{{ tacacs_extra_packages }}"
+    state: "{{ tacacs_package_state }}"

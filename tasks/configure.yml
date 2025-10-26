@@ -1,0 +1,71 @@
+---
+- name: Определить шаблон конфигурации tac_plus-ng
+  ansible.builtin.set_fact:
+    tacacs_selected_template: "{{ tacacs_config_templates[(tacacs_auth_mode | lower)] | default(tacacs_config_templates['local']) }}"
+
+- name: Проверить наличие шаблона
+  ansible.builtin.assert:
+    that:
+      - tacacs_selected_template is string
+    fail_msg: "Не удалось подобрать шаблон для режима {{ tacacs_auth_mode }}."
+
+- name: Создать каталог конфигурации
+  ansible.builtin.file:
+    path: "{{ tacacs_config_dir }}"
+    state: directory
+    owner: "{{ tacacs_owner }}"
+    group: "{{ tacacs_group }}"
+    mode: "0755"
+
+- name: Развернуть основной конфигурационный файл
+  ansible.builtin.template:
+    src: "{{ tacacs_selected_template }}"
+    dest: "{{ tacacs_main_config }}"
+    owner: "{{ tacacs_owner }}"
+    group: "{{ tacacs_group }}"
+    mode: "{{ tacacs_config_mode }}"
+
+- name: Развернуть файл tac_plus_hosts.cfg
+  ansible.builtin.copy:
+    src: "{{ tacacs_hosts_src }}"
+    dest: "{{ tacacs_hosts_config }}"
+    owner: "{{ tacacs_owner }}"
+    group: "{{ tacacs_group }}"
+    mode: "{{ tacacs_config_mode }}"
+
+- name: Развернуть файл tac_plus_users.cfg
+  ansible.builtin.copy:
+    src: "{{ tacacs_users_src }}"
+    dest: "{{ tacacs_users_config }}"
+    owner: "{{ tacacs_owner }}"
+    group: "{{ tacacs_group }}"
+    mode: "{{ tacacs_config_mode }}"
+
+- name: Развернуть файл shadow
+  ansible.builtin.copy:
+    src: "{{ tacacs_shadow_src }}"
+    dest: "{{ tacacs_shadow_file }}"
+    owner: "{{ tacacs_owner }}"
+    group: "{{ tacacs_group }}"
+    mode: "{{ tacacs_shadow_mode }}"
+
+- name: Копируем файл tac_plus-ng.service (Только для source)
+  ansible.builtin.copy:
+    src: "{{ tacacs_source_systemd_daemon }}"
+    dest: "{{ tacacs_systemd_unit_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: reload systemd
+  when:
+    - tacacs_manage_service
+    - tacacs_install_method == 'source'
+
+- name: Применить handlers до перезапуска сервиса
+  ansible.builtin.meta: flush_handlers
+
+- name: Перезапустить tac_plus-ng
+  ansible.builtin.service:
+    name: tac_plus-ng
+    state: restarted
+  when: tacacs_manage_service

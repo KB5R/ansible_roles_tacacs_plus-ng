@@ -1,0 +1,10 @@
+---
+- name: restart tac_plus-ng
+  ansible.builtin.service:
+    name: "{{ tacacs_service_name }}"
+    state: restarted
+  when: tacacs_manage_service
+
+- name: reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true

@@ -1,0 +1,33 @@
+---
+- name: Установить зависимости для сборки tac_plus-ng
+  ansible.builtin.package:
+    name: "{{ tacacs_build_dependencies }}"
+    state: "{{ tacacs_package_state }}"
+
+- name: Установить rsync
+  ansible.builtin.package:
+    name: "{{ tacacs_extra_packages }}"
+    state: "{{ tacacs_package_state }}"
+
+
+- name: Создать каталог для распаковки исходников
+  ansible.builtin.file:
+    path: "{{ tacacs_source_unpack_dir }}"
+    state: directory
+
+- name: Распаковать архив tac_plus-ng
+  ansible.builtin.unarchive:
+    src: "{{ tacacs_source_archive }}"
+    dest: "{{ tacacs_source_unpack_dir }}"
+    remote_src: false
+    creates: "{{ tacacs_source_project_dir }}/configure"
+
+- name: Запустить configure и собрать tac_plus-ng
+  ansible.builtin.shell: |
+    cd {{ tacacs_source_project_dir }}
+    ./configure --prefix=/opt/tac_plus-ng --with-pcre2 tac_plus-ng
+    sed -i -e's/\$(LIB_CRYPT)/-lcrypt/g' tac_plus-ng/Makefile.obj
+    make
+    make install
+  args:
+    creates: "/opt/tac_plus-ng/sbin/tac_plus-ng"

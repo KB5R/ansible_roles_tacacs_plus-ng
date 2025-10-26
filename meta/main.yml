@@ -1,0 +1,11 @@
+---
+galaxy_info:
+  author: "Mihail Popkov"
+  description: "Роль для установки и настройки tac_plus-ng на ALT Linux."
+  platforms:
+    - name: ALT
+      versions:
+        - 9
+        - 10
+
+dependencies: []

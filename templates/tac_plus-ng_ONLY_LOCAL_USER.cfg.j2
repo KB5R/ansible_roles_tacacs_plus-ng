@@ -1,0 +1,39 @@
+###!/opt/tac_plus-ng/sbin/tac_plus-ng
+id = spawnd {
+        listen = {
+                port = {{ tacacs_listen_port }}
+                address = {{ tacacs_listen_address }}
+        }
+        spawn = {
+                instances min = 1
+                instances max = 10
+        }
+        background = yes
+}
+
+id = tac_plus-ng {
+        log authzlog { destination = /var/log/tac_plus-ng/authz/%Y/%m/%d.log }
+        log authclog { destination = /var/log/tac_plus-ng/authc/%Y/%m/%d.log }
+        log acctlog  { destination = /var/log/tac_plus-ng/acct/%Y/%m/%d.log }
+        accounting log = acctlog
+        authentication log = authclog
+        authorization log = authzlog
+
+        mavis module = external {
+                setenv SHADOWFILE = {{ tacacs_shadow_file }}
+                setenv FLAG_PWPOLICY=y
+                setenv MKPASSWD=/opt/bin/mkpasswd
+                setenv MKPASSWDMETHOD=sha-512
+                exec = /opt/tac_plus-ng/lib/mavis/mavis_tacplus_shadow.pl
+        }
+
+        login backend = mavis chpass
+        user backend = mavis
+        pap backend = mavis
+
+        # File with hosts configs
+        include = {{ tacacs_hosts_config }}
+
+        # File with hosts configs
+        include = {{ tacacs_users_config }}
+}

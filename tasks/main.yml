@@ -1,0 +1,12 @@
+---
+- name: Установить tac_plus-ng
+  ansible.builtin.include_tasks: install.yml
+
+- name: Настроить tac_plus-ng
+  ansible.builtin.include_tasks: configure.yml
+
+- name: Управление службой tac_plus-ng
+  ansible.builtin.service:
+    name: "{{ tacacs_service_name }}"
+    enabled: yes
+    state: "{{ tacacs_service_state }}"

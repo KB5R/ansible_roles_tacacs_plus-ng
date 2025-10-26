@@ -1,0 +1,13 @@
+- name: Проверить значение способа установки
+  ansible.builtin.assert:
+    that:
+      - tacacs_install_method in ['package', 'source']
+    fail_msg: "Недопустимый способ установки: {{ tacacs_install_method }}. Используйте package или source."
+
+- name: Установка из пакета
+  ansible.builtin.include_tasks: install_package.yml
+  when: tacacs_install_method == 'package'
+
+- name: Установка из исходников
+  ansible.builtin.include_tasks: install_source.yml
+  when: tacacs_install_method == 'source'

@@ -1,0 +1,52 @@
+###!/opt/tac_plus-ng/sbin/tac_plus-ng
+id = spawnd {
+        listen = {
+                port = {{ tacacs_listen_port }}
+                address = {{ tacacs_listen_address }}
+        }
+        spawn = {
+                instances min = 1
+                instances max = 10
+        }
+        background = no
+}
+
+id = tac_plus-ng {
+        log authzlog { destination = /var/log/tac_plus-ng/authz/%Y/%m/%d.log }
+        log authclog { destination = /var/log/tac_plus-ng/authc/%Y/%m/%d.log }
+        log acctlog  { destination = /var/log/tac_plus-ng/acct/%Y/%m/%d.log }
+        accounting log = acctlog
+        authentication log = authclog
+        authorization log = authzlog
+
+        mavis module = external {
+                setenv LDAP_SERVER_TYPE = "microsoft"
+                setenv LDAP_HOSTS = "ldap://{{ tacacs_ldap_base_search_1 }}:{{ tacacs_ldap_port }} ldap://{{ tacacs_ldap_base_search_2 }}:{{ tacacs_ldap_port }}"
+                setenv LDAP_SCOPE = sub
+                setenv LDAP_BASE = "OU=org,DC={{ tacacs_ldap_DC_2 }},DC={{ tacacs_ldap_DC_1 }}"
+                setenv LDAP_FILTER = "(&(objectclass=user)(sAMAccountName=%s))"
+                setenv LDAP_USER = "{{ tacacs_ldap_bind_user_ad }}"
+                setenv LDAP_PASSWD = "{{ tacacs_ldap_bind_user_password }}"
+                setenv AD_GROUP_PREFIX = ""
+                setenv EXPAND_AD_GROUP_MEMBERSHIP = True
+                setenv UNLIMIT_AD_GROUP_MEMBERSHIP = True
+                exec = /opt/tac_plus-ng/lib/mavis/mavis_tacplus_ldap.pl
+        }
+        mavis module = external {
+                setenv SHADOWFILE = {{ tacacs_shadow_file }}
+                setenv FLAG_PWPOLICY=y
+                setenv MKPASSWD=/opt/bin/mkpasswd
+                setenv MKPASSWDMETHOD=sha-512
+                exec = /opt/tac_plus-ng/lib/mavis/mavis_tacplus_shadow.pl
+        }
+
+        login backend = mavis chpass
+        user backend = mavis
+        pap backend = mavis
+
+        # File with hosts configs
+        include = {{ tacacs_hosts_config }}
+
+        # File with hosts configs
+        include = {{ tacacs_users_config }}
+}
